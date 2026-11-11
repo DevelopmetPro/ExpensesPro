@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Expenses Pro - AI & Voice Expense Tracker</title>
+  <link rel="stylesheet" href="Styles.css">
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --card-bg: rgba(18, 22, 31, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent-green: #2ea043;
+      --accent-glow: #4ade80;
+      --accent-gradient: linear-gradient(135deg, #4ade80 0%, #2ea043 100%);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark) !important;
+      color: var(--text-main) !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Background Grid & Orbs */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(140px);
+      pointer-events: none;
+      z-index: 0;
+      animation: pulseOrb 8s infinite alternate ease-in-out;
+    }
+    .orb-1 { width: 500px; height: 500px; background: rgba(74, 222, 128, 0.15); top: -100px; left: 50%; transform: translateX(-50%); }
+    .orb-2 { width: 400px; height: 400px; background: rgba(46, 160, 67, 0.12); top: 900px; right: -100px; animation-delay: -4s; }
+
+    @keyframes pulseOrb {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.15); opacity: 1; }
+    }
+
+    /* Navigation */
+    .nav-header {
+      position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(16px);
+      background: rgba(7, 9, 14, 0.85);
+      border-bottom: 1px solid var(--card-border);
+    }
+    .nav-container {
+      max-width: 1200px; margin: 0 auto; padding: 18px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 12px;
+      font-size: 1.3rem; font-weight: 800; color: var(--text-main);
+    }
+
+    /* Buttons */
+    .btn-main {
+      background: var(--accent-gradient);
+      color: #04130a; padding: 12px 26px; border-radius: 99px;
+      font-weight: 700; font-size: 0.95rem; text-decoration: none;
+      box-shadow: 0 4px 20px rgba(74, 222, 128, 0.25);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: inline-block;
+    }
+    .btn-main:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 10px 30px rgba(74, 222, 128, 0.45); }
+
+    .btn-outline {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      color: var(--text-main); padding: 12px 26px; border-radius: 99px;
+      font-weight: 600; font-size: 0.95rem; text-decoration: none;
+      backdrop-filter: blur(8px); transition: all 0.3s ease;
+      display: inline-block;
+    }
+    .btn-outline:hover { border-color: var(--accent-glow); transform: translateY(-3px) scale(1.02); }
+
+    /* Hero */
+    .hero-section {
+      position: relative; z-index: 1; max-width: 950px;
+      margin: 70px auto 40px; padding: 0 24px; text-align: center;
+    }
+    .badge {
+      display: inline-block; padding: 6px 16px; border-radius: 99px;
+      background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3);
+      color: var(--accent-glow); font-size: 0.85rem; font-weight: 700; margin-bottom: 24px;
+    }
+    .hero-title {
+      font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 800; line-height: 1.1; margin-bottom: 24px;
+    }
+    .hero-title span {
+      background: linear-gradient(135deg, #ffffff 30%, var(--accent-glow) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-subtitle {
+      font-size: 1.15rem; color: var(--text-muted); max-width: 660px; margin: 0 auto 40px; line-height: 1.6;
+    }
+
+    /* Stats Grid */
+    .stats-bar {
+      display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; margin-top: 40px;
+    }
+    .stat-item { text-align: center; }
+    .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--accent-glow); }
+    .stat-lbl { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* Interactive Visual Tab Section */
+    .interactive-showcase {
+      position: relative; z-index: 1; max-width: 1100px; margin: 80px auto; padding: 0 24px;
+    }
+    .tab-buttons {
+      display: flex; justify-content: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      color: var(--text-muted); padding: 10px 20px; border-radius: 99px;
+      font-weight: 600; cursor: pointer; transition: all 0.3s ease;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      color: var(--text-main); border-color: var(--accent-glow); background: rgba(74, 222, 128, 0.1);
+      transform: translateY(-2px);
+    }
+
+    /* Mockup Frame */
+    .browser-frame {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 20px; padding: 16px; box-shadow: 0 30px 80px rgba(0,0,0,0.8);
+      backdrop-filter: blur(12px); overflow: hidden;
+    }
+    .browser-header {
+      display: flex; gap: 8px; margin-bottom: 16px; padding-left: 8px;
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(255,255,255,0.2); }
+
+    .browser-display img {
+      width: 100%; height: auto; border-radius: 12px; display: block;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .browser-display img.tab-fade {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+
+    /* Showcase Rows */
+    .showcase-section {
+      position: relative; z-index: 1; max-width: 1200px; margin: 120px auto; padding: 0 24px;
+    }
+    .showcase-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-bottom: 120px;
+    }
+    .showcase-row.reverse { direction: rtl; }
+    .showcase-row.reverse > * { direction: ltr; }
+    .showcase-text h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 18px; }
+    .showcase-text p { color: var(--text-muted); line-height: 1.7; font-size: 1.05rem; }
+
+    .img-wrapper {
+      position: relative; background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 24px; padding: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.5s ease;
+    }
+    .img-wrapper:hover { transform: scale(1.03) rotate(0.5deg); border-color: rgba(74, 222, 128, 0.4); }
+    .img-wrapper img { width: 100%; border-radius: 16px; display: block; }
+
+    /* Continuous Floating Badge Animation */
+    .float-badge {
+      position: absolute; bottom: -20px; right: -20px;
+      background: rgba(18, 22, 31, 0.95); border: 1px solid var(--accent-glow);
+      padding: 12px 20px; border-radius: 16px; color: var(--text-main); font-weight: 700;
+      font-size: 0.88rem; box-shadow: 0 10px 25px rgba(0,0,0,0.6); backdrop-filter: blur(10px);
+      animation: floatMotion 4s ease-in-out infinite alternate;
+    }
+    @keyframes floatMotion {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-8px); }
+    }
+
+    /* Bidirectional Scroll Reveal Classes */
+    .reveal {
+      opacity: 0;
+      transform: translateY(50px) scale(0.96);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: opacity, transform;
+    }
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    @media (max-width: 868px) {
+      .showcase-row, .showcase-row.reverse { grid-template-columns: 1fr; gap: 32px; direction: ltr; }
+      .float-badge { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <!-- Navigation -->
+  <header class="nav-header">
+    <div class="nav-container">
+      <div class="nav-brand">
+        <img src="images/Logo.png" alt="Logo" onerror="this.style.display='none'">
+        <span>Expenses Pro</span>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <a href="download.html" class="btn-outline">APK Download</a>
+        <a href="Online View/HTMLPage.html" class="btn-main">Launch App &rarr;</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero-section reveal">
+    <div class="badge">⚡ Local AI Financial Workspace</div>
+    <h1 class="hero-title">Track Expenses by <span>Talking & Natural Typing</span></h1>
+    <p class="hero-subtitle">
+      Zero forms. Speak or type casual sentences to log transactions, track budgets, and view real-time predictive analytics.
+    </p>
+    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+      <a href="Online View/HTMLPage.html" class="btn-main">Launch Web Workspace</a>
+      <a href="download.html" class="btn-outline">Download APK</a>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-num">100%</div>
+        <div class="stat-lbl">On-Device Privacy</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">0ms</div>
+        <div class="stat-lbl">Cloud Latency</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">12 Mo</div>
+        <div class="stat-lbl">Linear Forecasting</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Screen Showcase -->
+  <section class="interactive-showcase reveal">
+    <div class="tab-buttons">
+      <button class="tab-btn active" onclick="switchTab('forecast', this)">Predictive Analytics</button>
+      <button class="tab-btn" onclick="switchTab('desktop', this)">Desktop Dashboard</button>
+      <button class="tab-btn" onclick="switchTab('voice', this)">Voice Input</button>
+      <button class="tab-btn" onclick="switchTab('summary', this)">Monthly Summary</button>
+      <button class="tab-btn" onclick="switchTab('settings', this)">Theme Presets</button>
+    </div>
+
+    <div class="browser-frame">
+      <div class="browser-header">
+        <div class="dot" style="background:#ff5f56"></div>
+        <div class="dot" style="background:#ffbd2e"></div>
+        <div class="dot" style="background:#27c93f"></div>
+      </div>
+      <div class="browser-display">
+        <img id="tab-img" src="Desktop view Screenshots/Screenshot_20261109_233821.png" alt="App Preview">
+      </div>
+    </div>
+  </section>
+
+  <!-- Detailed Feature Sections -->
+  <section class="showcase-section">
+
+    <div class="showcase-row reveal">
+      <div class="showcase-text">
+        <h2>Natural Language & Speech Parser</h2>
+        <p>Type <em>"I spent 5k on shoes"</em> or tap the mic. Expenses Pro automatically categorizes your entry, selects the payment method, and recalculates monthly balances.</p>
+      </div>
+      <div class="img-wrapper">
+        <img src="Mobile View Screenshots/Screenshot_2026-11-09-23-29-25-763_com.yourname.expensespro.jpg" alt="Voice Input Screen">
+        <div class="float-badge">🎙️ Voice & Text AI</div>
+      </div>
+    </div>
+
+    <div class="showcase-row reverse reveal">
+      <div class="showcase-text">
+        <h2>Predictive Monthly Analytics</h2>
+        <p>Monitor current spending paces, projected savings rates, and income histories through dynamic visual graphs and linear trends.</p>
+      </div>
+      <div class="img-wrapper">
+        <img src="Desktop view Screenshots/Screenshot_20261109_233821.png" alt="Forecast Analytics">
+        <div class="float-badge">📊 Linear Forecasting</div>
+      </div>
+    </div>
+
+    <div class="showcase-row reveal">
+      <div class="showcase-text">
+        <h2>Multi-Device Desktop Workspace</h2>
+        <p>Adapts fluidly between wide desktop views and mobile views, maintaining local data synchronization across environments.</p>
+      </div>
+      <div class="img-wrapper">
+        <img src="Desktop view Screenshots/Screenshot_20261109_233807.png" alt="Desktop Dashboard View">
+        <div class="float-badge">💻 Responsive UI</div>
+      </div>
+    </div>
+
+    <div class="showcase-row reverse reveal">
+      <div class="showcase-text">
+        <h2>Theme Customization & Full Backups</h2>
+        <p>Personalize your experience with presets like Emerald Night, Ocean, and Sunset, or export complete JSON data backups with a single tap.</p>
+      </div>
+      <div class="img-wrapper">
+        <img src="Desktop view Screenshots/Screenshot_20261109_233840.png" alt="Settings Screen">
+        <div class="float-badge">🎨 Theme Presets</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Footer -->
+  <footer style="position: relative; z-index: 1; text-align: center; padding: 60px 24px; border-top: 1px solid var(--card-border);" class="reveal">
+    <h2 style="font-size: 2rem; margin-bottom: 20px;">Ready to manage your expenses smarter?</h2>
+    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+      <a href="Online View/HTMLPage.html" class="btn-main">Launch Web Workspace</a>
+      <a href="download.html" class="btn-outline">Download APK</a>
+    </div>
+  </footer>
+
+  <script>
+    // Tab switching with smooth fade animation
+    const images = {
+      forecast: 'Desktop view Screenshots/Screenshot_20261109_233821.png',
+      desktop: 'Desktop view Screenshots/Screenshot_20261109_233807.png',
+      voice: 'Mobile View Screenshots/Screenshot_2026-11-09-23-29-25-763_com.yourname.expensespro.jpg',
+      summary: 'Mobile View Screenshots/Screenshot_2026-11-09-23-29-34-514_com.yourname.expensespro.jpg',
+      settings: 'Desktop view Screenshots/Screenshot_20261109_233840.png'
+    };
+
+    function switchTab(key, el) {
+      const img = document.getElementById('tab-img');
+      img.classList.add('tab-fade');
+
+      setTimeout(() => {
+        img.src = images[key];
+        img.classList.remove('tab-fade');
+      }, 150);
+
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    // Bidirectional Intersection Observer (triggers on scroll down AND scroll up)
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+        } else {
+          entry.target.classList.remove('active');
+        }
+      });
+    }, {
+      threshold: 0.15,
+      rootMargin: "0px 0px -50px 0px"
+    });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

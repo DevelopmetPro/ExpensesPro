@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Download APK - Expenses Pro</title>
+  <link rel="stylesheet" href="Styles.css">
+  <style>
+    :root {
+      --landing-bg: #0d1117;
+      --card-bg: #161b22;
+      --border-color: #30363d;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent-green: #2ea043;
+      --accent-light: #4ade80;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--landing-bg) !important;
+      color: var(--text-main) !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    .dl-container {
+      max-width: 600px;
+      margin: 80px auto;
+      padding: 0 24px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-light);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+      transition: opacity 0.2s;
+    }
+    .back-link:hover { opacity: 0.8; }
+
+    .page-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+    .page-subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      margin-bottom: 36px;
+    }
+
+    .apk-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .apk-info strong {
+      display: block;
+      font-size: 1.2rem;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+    .apk-info span {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .dl-btn {
+      background: var(--accent-green);
+      color: #ffffff;
+      padding: 12px 24px;
+      border-radius: 99px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dl-btn:hover {
+      background: #3fb950;
+      transform: translateY(-2px);
+    }
+    .dl-btn.downloaded {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+    .dl-btn.downloaded:hover {
+      border-color: var(--accent-light);
+      background: rgba(74, 222, 128, 0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dl-container">
+    <a href="index.html" class="back-link">&larr; Back to Home</a>
+
+    <h1 class="page-title">Download Android App</h1>
+    <p class="page-subtitle">Install the official Expenses Pro APK directly on your Android device.</p>
+
+    <div class="apk-card">
+      <div class="apk-info">
+        <strong>Expenses Pro (Android)</strong>
+        <span>Universal APK &bull; Capacitor Build</span>
+      </div>
+      <a href="apks/ExpensesPro_v1.0.apk" id="apk-download-btn" class="dl-btn" download onclick="handleDownload(this)">
+        Download APK
+      </a>
+    </div>
+  </div>
+
+  <script>
+    function handleDownload(btn) {
+      // Small timeout to let the browser trigger the file download first
+      setTimeout(() => {
+        btn.textContent = "✓ Download Again";
+        btn.classList.add("downloaded");
+      }, 300);
+    }
+  </script>
+
+</body>
+</html>

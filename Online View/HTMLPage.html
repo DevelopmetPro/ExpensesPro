@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Expenses Pro</title>
+  <link rel="stylesheet" href="Styles.css">
+  <style>
+    /* ═════════ Theme variables (all of these are controlled from Settings) ═════════ */
+    :root {
+      --accent-rgb: 74, 222, 128;
+      --blue-rgb: 111, 143, 174;
+      --red-rgb: 248, 113, 113;
+      --accent-blue: #6f8fae;
+      --on-accent: #04130a;
+      --on-bubble: #04130a;
+      --glow-green: rgba(74, 222, 128, 0.16);
+      --page-glow-1: rgba(74, 222, 128, 0.10);
+      --page-glow-2: rgba(111, 143, 174, 0.09);
+      --grad-start: #f3f4f6;
+      --grad-end: #4ade80;
+      --grad-angle: 90deg;
+      --bubble-start: #4ade80;
+      --bubble-end: #3fbf72;
+      --radius: 20px;
+      --r-md: calc(var(--radius) * 0.6);
+      --r-sm: calc(var(--radius) * 0.4);
+      --sidebar-w: 320px;
+      --wm-opacity: 0.08;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    * { font-family: var(--font); }
+    [hidden] { display: none !important; }
+    .vanish { display: none !important; }
+
+    body { background-color: var(--bg-dark); color: var(--text-main); }
+
+    .main-content {
+      background:
+        radial-gradient(640px 380px at 50% -40px, var(--page-glow-1), transparent 70%),
+        radial-gradient(520px 380px at 100% 100%, var(--page-glow-2), transparent 70%),
+        var(--bg-dark);
+    }
+
+    .avatar-fallback {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700; letter-spacing: 0.5px;
+      color: var(--on-accent);
+      background: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+      border: 2px solid var(--border-color);
+    }
+
+    .watermark-bg { opacity: var(--wm-opacity); }
+
+    /* ═════════ Home / hero ═════════ */
+    .hero { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
+    .hero .main-title, .view-title {
+      background: linear-gradient(var(--grad-angle), var(--grad-start), var(--grad-end));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+    .hero .main-title { margin-bottom: 8px; }
+    .no-title-gradient .hero .main-title,
+    .no-title-gradient .view-title { background: none; -webkit-text-fill-color: var(--text-main); color: var(--text-main); }
+    .tagline { font-size: 0.9rem; color: var(--text-muted); text-align: center; }
+
+    .action-card {
+      display: flex; align-items: center; gap: 12px; text-align: left;
+      border-radius: var(--radius);
+      background: linear-gradient(160deg, var(--card-bg), var(--panel-bg));
+    }
+    .flat-cards .action-card, .flat-cards .metric-card { background: var(--card-bg); }
+    .action-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0, 0, 0, 0.3), 0 0 0 3px var(--glow-green); }
+    .action-icon {
+      flex-shrink: 0; width: 34px; height: 34px; border-radius: var(--r-sm);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--accent-green);
+      background-color: rgba(var(--accent-rgb), 0.10);
+      border: 1px solid rgba(var(--accent-rgb), 0.22);
+    }
+
+    /* Composer */
+    .composer { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+    .view-panel.chat-mode .composer { position: sticky; bottom: 0; background-color: var(--bg-dark); padding: 12px 0 20px; }
+    .input-wrapper input { border-radius: calc(var(--radius) * 1.5); }
+    .input-wrapper input:focus { box-shadow: 0 0 0 3px var(--glow-green); }
+    .send-btn { color: var(--on-accent); }
+    .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .mic-btn { transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease; }
+    .mic-btn.listening { background-color: var(--accent-green); border-color: var(--accent-green); color: var(--on-accent); animation: micRing 1.6s infinite; }
+    @keyframes micRing {
+      0%   { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0.55); }
+      70%  { box-shadow: 0 0 0 14px rgba(var(--accent-rgb), 0); }
+      100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); }
+    }
+
+    /* Voice panel */
+    .voice-panel {
+      width: 100%; display: flex; flex-direction: column; gap: 10px; padding: 14px 16px;
+      border-radius: var(--radius); border: 1px solid var(--border-active);
+      background: linear-gradient(180deg, color-mix(in srgb, var(--card-bg) 92%, var(--text-main) 5%), var(--panel-bg));
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(var(--accent-rgb), 0.05);
+      animation: rise 0.25s ease;
+    }
+    @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .voice-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .rec-status { display: flex; align-items: center; gap: 8px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); }
+    .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-red); animation: blink 1.2s infinite ease-in-out; }
+    .rec-dot.idle { background: var(--text-muted); animation: none; }
+    .voice-hint { font-size: 0.7rem; color: var(--accent-blue); text-align: right; }
+    .voice-hint:empty { display: none; }
+    .voice-canvas { width: 100%; height: 56px; display: block; }
+    .voice-transcript { min-height: 1.4em; font-size: 0.95rem; line-height: 1.45; color: var(--text-main); }
+    .voice-transcript.placeholder { color: var(--text-muted); }
+    .voice-transcript.error { color: var(--accent-red); }
+    .voice-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    .edit-actions button, .voice-actions button, .set-btn {
+      border-radius: var(--r-md); padding: 10px 18px; font-size: 0.88rem; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--border-color); background-color: var(--card-bg); color: var(--text-main);
+      transition: border-color 0.2s ease, opacity 0.2s ease;
+    }
+    .edit-actions button:hover, .voice-actions button:hover, .set-btn:hover { border-color: var(--border-active); }
+    .edit-actions .primary, .voice-actions .primary { background-color: var(--accent-green); border-color: var(--accent-green); color: var(--on-accent); }
+    .voice-actions button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ═════════ Chat ═════════ */
+    .chat-log { width: 100%; display: flex; flex-direction: column; gap: 14px; padding-bottom: 16px; }
+    .view-panel.chat-mode { justify-content: flex-start; }
+    .view-panel.chat-mode .content-wrapper { flex: 1; min-height: calc(100vh - 120px); justify-content: flex-end; }
+    .view-panel.chat-mode .watermark-bg { opacity: calc(var(--wm-opacity) * 0.5); }
+
+    .msg-row { display: flex; width: 100%; }
+    .msg-row.user { justify-content: flex-end; }
+    .msg-row.bot { justify-content: flex-start; }
+
+    .bubble { max-width: 85%; padding: 12px 16px; font-size: 0.92rem; line-height: 1.45; word-wrap: break-word; overflow-wrap: anywhere; animation: rise 0.25s ease; }
+    .user-bubble {
+      background: linear-gradient(135deg, var(--bubble-start), var(--bubble-end));
+      color: var(--on-bubble);
+      border-radius: var(--radius) var(--radius) 4px var(--radius);
+      font-weight: 500;
+    }
+    .bot-bubble {
+      background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main);
+      border-radius: var(--radius) var(--radius) var(--radius) 4px;
+    }
+    .table-bubble { max-width: 100%; padding: 12px; }
+
+    .typing { display: flex; gap: 5px; padding: 14px 18px; }
+    .typing .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); animation: blink 1.2s infinite ease-in-out; }
+    .typing .dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing .dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+
+    .table-scroll { overflow-x: auto; }
+    .result-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+    .result-table th { text-align: left; color: var(--accent-blue); font-weight: 700; font-size: 0.7rem; letter-spacing: 0.5px; text-transform: uppercase; padding: 6px 10px; border-bottom: 1px solid var(--border-active); white-space: nowrap; }
+    .result-table td { padding: 6px 10px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    .result-table tbody tr:last-child td { border-bottom: none; }
+    .result-table tbody tr:hover td { background-color: rgba(var(--accent-rgb), 0.04); }
+    .result-table td.pos { color: var(--accent-green); }
+    .result-table td.neg { color: var(--accent-red); }
+    .bubble .result-table td { padding: 4px 6px; }
+
+    .cell-link {
+      background: none; border: none; color: var(--accent-green); font-size: 0.85rem;
+      text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(var(--accent-rgb), 0.4);
+      cursor: pointer; padding: 4px; border-radius: 6px; text-align: left; transition: background-color 0.4s ease;
+    }
+    .cell-link:hover { background-color: var(--card-hover); text-decoration-color: var(--accent-green); }
+    .cell-link.just-edited { background-color: rgba(var(--accent-rgb), 0.2); }
+
+    .change-notes { display: flex; flex-direction: column; gap: 2px; }
+    .change-notes:not(:empty) { margin-top: 10px; }
+    .change-note { font-size: 0.74rem; color: var(--text-muted); }
+
+    /* Edit panel */
+    .edit-overlay { position: fixed; inset: 0; background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 200; }
+    .edit-panel { width: 100%; max-width: 360px; background: linear-gradient(180deg, color-mix(in srgb, var(--panel-bg) 92%, var(--text-main) 5%), var(--panel-bg)); border: 1px solid var(--border-active); border-radius: var(--radius); padding: 22px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45); animation: rise 0.2s ease; }
+    .edit-panel h3 { font-size: 1.05rem; font-weight: 600; }
+    .edit-panel label { font-size: 0.8rem; color: var(--text-muted); }
+    .edit-panel input, .edit-panel select { width: 100%; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--r-md); padding: 12px 14px; color: var(--text-main); font-size: 0.95rem; outline: none; }
+    .edit-panel input:focus, .edit-panel select:focus { border-color: var(--accent-green); box-shadow: 0 0 0 3px var(--glow-green); }
+    .edit-error { min-height: 1em; font-size: 0.78rem; color: var(--accent-red); }
+    .edit-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ═════════ Data pages (summary / analysis / settings) ═════════ */
+    .view-panel.page-view { justify-content: flex-start; align-items: stretch; max-width: 900px; min-height: 0; padding-bottom: 40px; }
+    .page-head { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 4px 0 6px; }
+    .page-head .view-title { margin: 0; }
+    .icon-btn { flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 1.3rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s ease, opacity 0.2s ease; }
+    .icon-btn:hover:not(:disabled) { border-color: var(--accent-green); }
+    .icon-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .overview-grid { margin-top: 12px; }
+    .metric-card { border-radius: var(--radius); background: linear-gradient(160deg, var(--card-bg), var(--panel-bg)); }
+    .metric-value { font-size: 1.3rem; font-weight: 700; line-height: 1.2; word-break: break-word; }
+    .metric-value.pos { color: var(--accent-green); }
+    .metric-value.neg { color: var(--accent-red); }
+    .metric-sub { font-size: 0.74rem; color: var(--text-muted); }
+
+    .panel-box { border-radius: var(--radius); }
+    .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+    .panel-sub { font-size: 0.72rem; color: var(--text-muted); }
+
+    .chart-box { position: relative; width: 100%; height: 280px; }
+    .chart-box.tall { height: 340px; }
+    .chart-box.mini { height: 150px; }
+    .chart-box.empty canvas { visibility: hidden; }
+    .chart-box.empty::after { content: attr(data-msg); position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.85rem; border: 1.5px dashed var(--border-color); border-radius: var(--r-md); }
+
+    .donut-wrap { display: grid; grid-template-columns: minmax(0, 250px) 1fr; gap: 22px; align-items: center; }
+    .legend-row { display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border-color); font-size: 0.84rem; }
+    .legend-row:last-child { border-bottom: none; }
+    .legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+    .legend-pct { color: var(--text-muted); font-size: 0.78rem; }
+    .legend-amt { font-weight: 600; }
+
+    .src-row { display: flex; flex-direction: column; gap: 6px; padding: 6px 0; }
+    .src-head { display: flex; justify-content: space-between; font-size: 0.86rem; }
+    .src-amt { font-weight: 600; color: var(--accent-green); }
+    .src-track { height: 8px; border-radius: 99px; background: var(--card-bg); overflow: hidden; }
+    .src-fill { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+
+    .budget-track { height: 12px; border-radius: 99px; background: var(--card-bg); overflow: hidden; border: 1px solid var(--border-color); }
+    .budget-bar { height: 100%; width: 0; border-radius: 99px; background: var(--accent-green); transition: width 0.6s ease, background-color 0.3s ease; }
+    .budget-bar.warn { background: #fbbf24; }
+    .budget-bar.over { background: var(--accent-red); }
+    .budget-text { font-size: 0.82rem; color: var(--text-muted); }
+
+    .tx-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border-color); }
+    .tx-row:last-child { border-bottom: none; }
+    .tx-left { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .tx-detail { font-size: 0.9rem; font-weight: 500; }
+    .tx-meta { font-size: 0.72rem; color: var(--text-muted); }
+    .tx-amt { font-size: 0.88rem; font-weight: 600; white-space: nowrap; }
+    .tx-amt.pos, .pos { color: var(--accent-green); }
+    .tx-amt.neg, .neg { color: var(--accent-red); }
+
+    .empty-note { color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 14px; border: 1.5px dashed var(--border-color); border-radius: var(--r-md); }
+
+    .analysis-controls { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin: 6px 0 2px; }
+    .analysis-controls label { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-muted); }
+    .analysis-controls select { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--r-sm); padding: 8px 10px; font-size: 0.84rem; outline: none; }
+    .analysis-note { text-align: center; color: var(--text-muted); font-size: 0.8rem; margin: 2px 0 0; }
+
+    .insights { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .insights li { position: relative; padding-left: 18px; font-size: 0.88rem; line-height: 1.5; }
+    .insights li::before { content: ""; position: absolute; left: 0; top: 0.6em; width: 7px; height: 7px; border-radius: 50%; background: var(--accent-green); }
+
+    /* ═════════ Settings ═════════ */
+    .set-section { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: var(--radius); overflow: hidden; margin-top: 12px; }
+    .set-section > summary { padding: 15px 18px; cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+    .set-section > summary::-webkit-details-marker { display: none; }
+    .set-section > summary::after { content: "+"; color: var(--accent-green); font-size: 1.2rem; }
+    .set-section[open] > summary::after { content: "–"; }
+    .set-body { padding: 2px 18px 16px; display: flex; flex-direction: column; }
+    .set-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
+    .set-row:last-child { border-bottom: none; }
+    .set-label { font-size: 0.86rem; }
+    .set-sub { font-size: 0.78rem; color: var(--text-muted); margin: 10px 0 6px; }
+    .set-ctl { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .set-ctl input[type="range"] { width: 150px; accent-color: var(--accent-green); }
+    .set-ctl input[type="color"], .chart-color-grid input[type="color"] { width: 40px; height: 30px; padding: 0; border: 1px solid var(--border-color); border-radius: 8px; background: none; cursor: pointer; }
+    .set-ctl input[type="text"], .set-ctl input[type="number"], .set-ctl select { width: 210px; max-width: 100%; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); border-radius: var(--r-sm); padding: 8px 10px; font-size: 0.85rem; outline: none; }
+    .set-ctl input:focus, .set-ctl select:focus { border-color: var(--accent-green); }
+    .set-out { min-width: 48px; text-align: right; font-size: 0.8rem; color: var(--text-muted); }
+    .set-hex { font-size: 0.72rem; color: var(--text-muted); font-family: ui-monospace, Menlo, Consolas, monospace; }
+
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .knob { position: absolute; inset: 0; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 99px; cursor: pointer; transition: background-color 0.2s ease; }
+    .knob::before { content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; border-radius: 50%; background: var(--text-muted); transition: transform 0.2s ease, background-color 0.2s ease; }
+    .switch input:checked + .knob { background: rgba(var(--accent-rgb), 0.25); border-color: var(--accent-green); }
+    .switch input:checked + .knob::before { transform: translateX(20px); background: var(--accent-green); }
+    .switch input:focus-visible + .knob { box-shadow: 0 0 0 3px var(--glow-green); }
+
+    .preset-grid, .btn-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; padding-top: 10px; }
+    .palette-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .preset-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r-md); border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); cursor: pointer; font-size: 0.84rem; transition: border-color 0.2s ease; }
+    .preset-btn:hover { border-color: var(--accent-green); }
+    .preset-btn.small { padding: 7px 10px; font-size: 0.78rem; }
+    .preset-swatch { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border-color); flex-shrink: 0; }
+    .palette-strip { display: inline-flex; border-radius: 99px; overflow: hidden; border: 1px solid var(--border-color); }
+    .palette-strip i { display: block; width: 14px; height: 16px; }
+    .chart-color-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 8px; padding: 6px 0 10px; }
+    .chart-color-grid input[type="color"] { width: 100%; height: 34px; }
+    .preview-row { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; padding: 10px 0 4px; }
+    .set-btn.danger { border-color: rgba(var(--red-rgb), 0.5); color: var(--accent-red); }
+
+    /* ═════════ Density / motion switches ═════════ */
+    .compact .scroll-container { padding: 0 16px 24px; }
+    .compact .panel-box { padding: 14px; gap: 8px; }
+    .compact .metric-card { padding: 12px; }
+    .compact .bubble { padding: 9px 13px; }
+    .compact .history-item { padding: 9px 12px; }
+    .compact .set-row { padding: 6px 0; }
+    .no-anim *, .no-anim *::before, .no-anim *::after { animation: none !important; transition: none !important; }
+
+    @media (max-width: 768px) {
+      .bubble { max-width: 92%; }
+      .hero .main-title { font-size: 1.7rem; }
+      .overview-grid { grid-template-columns: repeat(2, 1fr); }
+      .donut-wrap, .preview-row { grid-template-columns: 1fr; }
+      .set-row { flex-direction: column; align-items: stretch; gap: 8px; }
+      .set-ctl { justify-content: space-between; }
+      .set-ctl input[type="text"], .set-ctl input[type="number"], .set-ctl select { width: 100%; }
+      .set-ctl input[type="range"] { flex: 1; width: auto; }
+      .chart-color-grid { grid-template-columns: repeat(4, 1fr); }
+      .page-head .view-title { font-size: 1.15rem; }
+    }
+
+    /* ───────── Chart bubble + type switcher ───────── */
+    .chart-bubble {
+      max-width: 100%;
+      width: 100%;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .chart-bubble .chart-title {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      color: var(--text-main);
+    }
+    .chart-bubble .chart-sub {
+      font-size: 0.76rem;
+      line-height: 1.4;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    /* the switcher track */
+    .chart-bubble .type-switch {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 4px;
+      padding: 4px;
+      margin-bottom: 12px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 99px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chart-bubble .type-switch::-webkit-scrollbar { display: none; }
+
+    /* each option */
+    .chart-bubble .type-btn {
+      flex: 1 0 auto;
+      appearance: none;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      line-height: 1;
+      padding: 8px 14px;
+      border-radius: 99px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    }
+    .chart-bubble .type-btn:hover {
+      color: var(--text-main);
+      background: var(--card-hover);
+    }
+    .chart-bubble .type-btn:active {
+      transform: scale(0.96);
+    }
+    .chart-bubble .type-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--glow-green);
+    }
+
+    /* selected option */
+    .chart-bubble .type-btn.active {
+      background: var(--accent-green);
+      color: var(--on-accent);
+      box-shadow: 0 2px 10px rgba(var(--accent-rgb), 0.35);
+    }
+
+    /* chart canvas area */
+    .chart-bubble .chart-box {
+      position: relative;
+      width: 100%;
+      height: 300px;
+    }
+
+    @media (max-width: 768px) {
+      .chart-bubble { padding: 12px; }
+      .chart-bubble .chart-box { height: 260px; }
+      .chart-bubble .type-btn { padding: 8px 12px; }
+    }
+  </style>
+  <link rel="stylesheet" href="Redesign.css">
+</head>
+<body data-tab="home">
+  <div class="app-container">
+
+    <header class="top-header">
+      <div class="brand">
+        <img src="images/Logo.png" alt="" class="brand-logo" onerror="this.remove()">
+        <h2 id="brandName">Expenses Pro</h2>
+      </div>
+      <span class="today-label" id="todayLabel"></span>
+      <div class="header-actions">
+        <div class="date-pick">
+          <button type="button" class="icon-circle" id="dateBtn" aria-label="Open a specific day"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17"/><path d="M8 3v4"/><path d="M16 3v4"/></svg></button>
+          <input type="date" id="dayPicker" tabindex="-1" aria-label="Pick a date to open that day's chat">
+        </div>
+        <div class="user-avatar">
+          <button type="button" class="avatar-btn" id="accountBtn" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">
+            <div class="avatar-fallback" id="userInitials" data-avatar>DC</div>
+          </button>
+          <div class="account-menu" id="accountMenu" hidden>
+            <div class="account-who">
+              <div class="avatar-fallback sm" data-avatar aria-hidden="true">DC</div>
+              <div class="account-text">
+                <span class="account-label">Signed in as</span>
+                <strong id="accountName">-</strong>
+              </div>
+            </div>
+            <button type="button" class="account-item" id="signOutBtn">Sign out</button>
+            <button type="button" class="account-item danger" id="deleteAccBtn">Delete account &amp; data</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="scroll-container">
+
+        <!-- HOME: balance, day strip, chat -->
+        <section id="home-view" class="view-panel active">
+          <div class="watermark-bg" id="watermark"><img src="images/Logo.png" alt="" onerror="this.remove()"></div>
+
+          <div class="cards" id="cards">
+            <div class="cards-track" id="cardsTrack">
+
+              <article class="card" aria-label="Balance" role="button" tabindex="0" aria-expanded="false"><span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+                <div class="bal-top">
+                  <span class="bal-label">Total balance</span>
+                  <strong class="bal-total" id="balTotal">-</strong>
+                </div>
+                <div class="bal-split">
+                  <div class="bal-part"><span>Cash in hand</span><b id="balCash">-</b></div>
+                  <div class="bal-part"><span>Bank</span><b id="balBank">-</b></div>
+                </div>
+                <div class="bal-month">
+                  <div class="bal-line"><span>Income this month</span><b class="pos" id="balIncome">-</b></div>
+                </div>
+              <div class="card-more"><div class="card-more-in"><div class="more-body"><div class="split" id="splitWrap"><div class="split-bar"><i id="splitCash"></i></div><div class="split-legend"><span><u class="d1"></u>Cash <b id="splitCashPct">-</b></span><span><u class="d2"></u>Bank <b id="splitBankPct">-</b></span></div></div><div class="more-rows" id="c1Rows"></div><h4 class="more-h">Latest entries</h4><div class="mini-list" id="c1List"></div></div></div></div>
+              </article>
+
+              <article class="card" aria-label="This month" role="button" tabindex="0" aria-expanded="false"><span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+                <div class="bal-top">
+                  <span class="bal-label" id="monthLabel">Spent this month</span>
+                  <strong class="bal-total" id="balSpent">-</strong>
+                </div>
+                <div class="bal-split">
+                  <div class="bal-part"><span>Net</span><b id="balNet">-</b></div>
+                  <div class="bal-part"><span>Daily average</span><b id="balAvg">-</b></div>
+                </div>
+                <div class="bal-month">
+                  <div class="bal-budget" id="balBudget" hidden>
+                    <div class="bal-track"><div class="bal-fill" id="balFill"></div></div>
+                    <span id="balBudgetText"></span>
+                  </div>
+                  <div class="bal-line" id="balNoBudget"><span>No budget set</span><b>Settings › Finance</b></div>
+                </div>
+              <div class="card-more"><div class="card-more-in"><div class="more-body"><div class="more-rows" id="c2Rows"></div></div></div></div>
+              </article>
+
+              <article class="card" aria-label="Top categories" role="button" tabindex="0" aria-expanded="false"><span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+                <div class="bal-top">
+                  <span class="bal-label">Where it went</span>
+                </div>
+                <div class="cat-list" id="catList"></div>
+              <div class="card-more"><div class="card-more-in"><div class="more-body"><div class="more-rows" id="c3Rows"></div></div></div></div>
+              </article>
+
+              <article class="card" aria-label="Today" role="button" tabindex="0" aria-expanded="false"><span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+                <div class="bal-top">
+                  <span class="bal-label">Spent today</span>
+                  <strong class="bal-total" id="tdSpent">-</strong>
+                </div>
+                <div class="bal-split">
+                  <div class="bal-part"><span>Entries today</span><b id="tdCount">-</b></div>
+                  <div class="bal-part"><span>Month-end pace</span><b id="tdPace">-</b></div>
+                </div>
+                <div class="bal-month">
+                  <div class="bal-line" id="tdLeftRow" hidden><span>Safe to spend per day</span><b id="tdLeft">-</b></div>
+                </div>
+              <div class="card-more"><div class="card-more-in"><div class="more-body"><div class="more-rows" id="c4Rows"></div><h4 class="more-h">Today's entries</h4><div class="mini-list" id="c4List"></div></div></div></div>
+              </article>
+
+            </div>
+            <div class="cards-dots" id="cardsDots" role="tablist" aria-label="Card pages"></div>
+          </div>
+
+          <div class="day-strip">
+            <div class="history-list" id="historyList" aria-label="Recent days"></div>
+          </div>
+
+          <div class="hero" id="hero">
+            <h1 class="main-title" id="heroTitle">Any Expenses or Gains Today?</h1>
+            <p class="tagline" id="heroTagline">Type it or just say it.</p>
+          </div>
+
+          <div class="chat-log" id="chatLog"></div>
+        </section>
+
+        <!-- VIEW 2: MONTHLY SUMMARY -->
+        <section id="summary-view" class="view-panel page-view">
+          <div class="page-head">
+            <button class="icon-btn" id="sumPrev" aria-label="Previous month">&#8249;</button>
+            <h1 class="view-title" id="summaryTitle">Monthly summary</h1>
+            <button class="icon-btn" id="sumNext" aria-label="Next month">&#8250;</button>
+          </div>
+
+          <div class="overview-grid">
+            <div class="metric-card">
+              <span class="label">Total Cash Inflow</span>
+              <div class="metric-value" id="metric-total-inflow">-</div>
+              <span class="metric-sub" id="metric-total-inflow-sub"></span>
+            </div>
+            <div class="metric-card">
+              <span class="label">Total Expenses</span>
+              <div class="metric-value" id="metric-total-expenses">-</div>
+              <span class="metric-sub" id="metric-total-expenses-sub"></span>
+            </div>
+            <div class="metric-card">
+              <span class="label">Savings Rate</span>
+              <div class="metric-value" id="metric-savings-rate">-</div>
+              <span class="metric-sub" id="metric-savings-rate-sub"></span>
+            </div>
+            <div class="metric-card">
+              <span class="label">Net Cash Flow</span>
+              <div class="metric-value" id="metric-net">-</div>
+              <span class="metric-sub" id="metric-net-sub"></span>
+            </div>
+            <div class="metric-card">
+              <span class="label">Avg. Daily Spend</span>
+              <div class="metric-value" id="metric-daily-avg">-</div>
+              <span class="metric-sub" id="metric-daily-avg-sub"></span>
+            </div>
+            <div class="metric-card">
+              <span class="label">Top Category</span>
+              <div class="metric-value" id="metric-top-cat">-</div>
+              <span class="metric-sub" id="metric-top-cat-sub"></span>
+            </div>
+          </div>
+
+          <div class="panel-box" id="budget-panel" hidden>
+            <h3>Monthly budget</h3>
+            <div class="budget-track"><div class="budget-bar" id="budget-bar"></div></div>
+            <div class="budget-text" id="budget-text"></div>
+          </div>
+
+          <div class="panel-box">
+            <h3>Income sources</h3>
+            <div id="income-sources-list"></div>
+          </div>
+
+          <div class="panel-box">
+            <h3>Expense breakdown</h3>
+            <div class="donut-wrap">
+              <div class="chart-box" id="expense-pie-box"><canvas id="expense-pie-chart"></canvas></div>
+              <div id="expense-legend"></div>
+            </div>
+          </div>
+
+          <div class="panel-box">
+            <h3>Daily spending</h3>
+            <div class="chart-box" id="daily-bar-box"><canvas id="daily-bar-chart"></canvas></div>
+          </div>
+
+          <div class="panel-box">
+            <div class="panel-head"><h3>Transactions</h3><span class="panel-sub" id="tx-count"></span></div>
+            <div id="month-transactions"></div>
+          </div>
+        </section>
+
+        <!-- VIEW 3: ANALYSIS (FORECAST) -->
+        <section id="analysis-view" class="view-panel page-view">
+          <div class="page-head">
+            <h1 class="view-title" id="analysisTitle">Forecast and analysis</h1>
+          </div>
+
+          <div class="analysis-controls">
+            <label>Method
+              <select id="anMethod">
+                <option value="trend">Linear trend</option>
+                <option value="average">Average</option>
+                <option value="weighted">Weighted average</option>
+              </select>
+            </label>
+            <label>Look ahead
+              <select id="anMonths"></select>
+            </label>
+          </div>
+          <p class="analysis-note" id="analysisNote"></p>
+
+          <div class="overview-grid">
+            <div class="metric-card">
+              <span class="label">This Month (at pace)</span>
+              <div class="metric-value" id="fc-pace">-</div>
+              <span class="metric-sub" id="fc-pace-sub"></span>
+            </div>
+            <div class="metric-card">
+              <span class="label">Next Month Expenses</span>
+              <div class="metric-value" id="fc-next-exp">-</div>
+              <span class="metric-sub" id="fc-next-exp-sub"></span>
+            </div>
+            <div class="metric-card">
+              <span class="label">Next Month Income</span>
+              <div class="metric-value" id="fc-next-inc">-</div>
+              <span class="metric-sub" id="fc-next-inc-sub"></span>
+            </div>
+            <div class="metric-card">
+              <span class="label">Next Month Net</span>
+              <div class="metric-value" id="fc-next-net">-</div>
+              <span class="metric-sub" id="fc-next-net-sub"></span>
+            </div>
+            <div class="metric-card">
+              <span class="label">Projected Net Savings</span>
+              <div class="metric-value" id="fc-balance">-</div>
+              <span class="metric-sub" id="fc-balance-sub"></span>
+            </div>
+            <div class="metric-card">
+              <span class="label">Avg. Monthly Spend</span>
+              <div class="metric-value" id="fc-avg">-</div>
+              <span class="metric-sub" id="fc-avg-sub"></span>
+            </div>
+          </div>
+
+          <div class="panel-box">
+            <h3>Income and expenses: history and forecast</h3>
+            <div class="chart-box tall" id="cashflow-box"><canvas id="cashflow-line-chart"></canvas></div>
+          </div>
+
+          <div class="panel-box">
+            <h3>Projected net savings</h3>
+            <div class="chart-box" id="balance-box"><canvas id="balance-chart"></canvas></div>
+          </div>
+
+          <div class="panel-box">
+            <h3>This month's pace</h3>
+            <div class="chart-box" id="pace-box"><canvas id="pace-chart"></canvas></div>
+          </div>
+
+          <div class="panel-box">
+            <h3>Category forecast</h3>
+            <div id="category-forecast"></div>
+          </div>
+
+          <div class="panel-box">
+            <h3>Insights</h3>
+            <ul class="insights" id="insights"></ul>
+          </div>
+        </section>
+
+        <!-- VIEW 4: SETTINGS -->
+        <section id="settings-view" class="view-panel page-view">
+          <div class="page-head">
+            <h1 class="view-title">Settings</h1>
+          </div>
+          <p class="analysis-note">Every change applies instantly and is saved on this device.</p>
+          <div id="settingsRoot"></div>
+        </section>
+      </div>
+
+      <!-- Entry bar: always one tap from typing, only on Home -->
+      <div class="dock" id="dock">
+        <div class="voice-panel" id="voicePanel" hidden>
+          <div class="voice-head">
+            <div class="rec-status"><span class="rec-dot idle" id="voiceDot"></span><span id="voiceStatus">Listening</span></div>
+            <div class="voice-hint" id="voiceHint"></div>
+          </div>
+          <canvas class="voice-canvas" id="voiceCanvas"></canvas>
+          <div class="voice-transcript placeholder" id="voiceTranscript"></div>
+          <div class="voice-actions">
+            <button type="button" id="voiceCancel">Cancel</button>
+            <button type="button" id="voiceDone" class="primary">Done</button>
+          </div>
+        </div>
+
+        <div class="quick-actions" id="quickActions">
+          <button type="button" class="chip chip-add" data-fill="Spent |"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Spent</button>
+          <button type="button" class="chip chip-add" data-fill="Received |"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Income</button>
+          <button type="button" class="chip" data-fill="Spent | on food">Food</button>
+          <button type="button" class="chip" data-fill="Spent | on transport">Travel</button>
+          <button type="button" class="chip action-card" data-prompt="Show my Spendings On food">Food spend</button>
+          <button type="button" class="chip action-card" data-prompt="Edit yesterdays expenses">Edit yesterday</button>
+        </div>
+
+        <div class="input-area">
+          <div class="input-wrapper">
+            <input type="text" id="chatInput" placeholder="Type away or ask a question..." autocomplete="off" enterkeyhint="send" />
+            <button type="button" class="mic-btn" id="micBtn" aria-label="Voice input"><svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3.5"/></svg></button>
+            <button type="button" class="send-btn" id="sendBtn" aria-label="Add entry"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Main">
+      <div class="rail-brand">
+        <img src="images/Logo.png" alt="" class="brand-logo" onerror="this.remove()">
+        <span id="railName">Expenses Pro</span>
+      </div>
+      <button type="button" class="nav-btn active" data-tab="home"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7.5 9 7.5"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5.5h4V20"/></svg><span>Home</span></button>
+      <button type="button" class="nav-btn" data-tab="summary"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="12" width="3.5" height="8" rx="1"/><rect x="10.25" y="4" width="3.5" height="16" rx="1"/><rect x="16.5" y="9" width="3.5" height="11" rx="1"/></svg><span>Summary</span></button>
+      <button type="button" class="nav-btn" data-tab="analysis"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l5.5-5.5 4 4L21 7"/><path d="M15 7h6v6"/></svg><span>Analysis</span></button>
+      <button type="button" class="nav-btn" data-tab="settings"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9"/><path d="M17 7h3"/><circle cx="15" cy="7" r="2"/><path d="M4 17h3"/><path d="M11 17h9"/><circle cx="9" cy="17" r="2"/></svg><span>Settings</span></button>
+    </nav>
+  </div>
+
+  <!-- Edit panel (opens when a table value is clicked) -->
+  <div class="edit-overlay" id="editOverlay" hidden>
+    <div class="edit-panel" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+      <h3 id="editTitle">Edit</h3>
+      <label id="editLabel" for="editField"></label>
+      <div id="editFieldHolder"></div>
+      <p class="edit-error" id="editError"></p>
+      <div class="edit-actions">
+        <button type="button" id="editCancel">Cancel</button>
+        <button type="button" id="editSave" class="primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Auth.js shows the sign-in panel, then loads Script.js, Extras.js and Layout.js for the signed-in account -->
+  <script src="Auth.js"></script>
+</body>
+</html>
